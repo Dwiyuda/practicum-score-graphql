@@ -1,0 +1,70 @@
+"A student enrolled in a practicum class."
+type Student {
+  id: ID!
+  nim: String!
+  name: String!
+  className: String!
+  scores: [Score!]!
+  "Mean score over every recorded session, 0 when nothing is recorded yet."
+  average: Float!
+  "Share of recorded sessions the student attended, from 0 to 1."
+  attendanceRate: Float!
+}
+
+"One practicum meeting."
+type Session {
+  id: ID!
+  number: Int!
+  topic: String!
+  "Date in YYYY-MM-DD."
+  heldOn: String!
+}
+
+"A student's result for one session."
+type Score {
+  id: ID!
+  student: Student!
+  session: Session!
+  value: Float!
+  attended: Boolean!
+}
+
+type ClassSummary {
+  className: String!
+  students: Int!
+  average: Float!
+  attendanceRate: Float!
+}
+
+type Query {
+  students(className: String): [Student!]!
+  student(id: ID!): Student
+  sessions: [Session!]!
+  classSummary(className: String!): ClassSummary!
+}
+
+input NewStudent {
+  nim: String!
+  name: String!
+  className: String!
+}
+
+input NewSession {
+  number: Int!
+  topic: String!
+  heldOn: String!
+}
+
+input RecordScoreInput {
+  studentId: ID!
+  sessionId: ID!
+  value: Float!
+  attended: Boolean!
+}
+
+type Mutation {
+  createStudent(input: NewStudent!): Student!
+  createSession(input: NewSession!): Session!
+  "Creates or replaces the score for a student in a session."
+  recordScore(input: RecordScoreInput!): Score!
+}

@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: practicum
+      POSTGRES_PASSWORD: practicum # local demo only
+      POSTGRES_DB: practicum
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U practicum"]
+      interval: 2s
+      retries: 15
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    command: ["-seed"]
+    environment:
+      DATABASE_URL: postgres://practicum:practicum@db:5432/practicum?sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
