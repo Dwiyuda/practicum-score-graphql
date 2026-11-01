@@ -1,0 +1,15 @@
+# Render Blueprint — deploys the Go server from the Dockerfile.
+# PostgreSQL is hosted separately on Neon (free, persistent); paste its
+# connection string into DATABASE_URL when you apply this blueprint.
+services:
+  - type: web
+    name: practicum-score-graphql
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: /server -seed   # -seed is idempotent: it only fills an empty database
+    plan: free
+    region: singapore
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        sync: false                # entered at apply time (the Neon connection string)

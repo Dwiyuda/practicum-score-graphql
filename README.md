@@ -7,6 +7,8 @@ missing sessions, and how does a whole class compare.
 Built with [gqlgen](https://gqlgen.com) (schema first), [pgx](https://github.com/jackc/pgx), and
 Docker Compose. All demo data is synthetic; names are fictional.
 
+**Live demo:** free and persistent on Neon (PostgreSQL) + Render (Go server) — see [DEPLOY.md](DEPLOY.md).
+
 ## Run it
 
 ```bash
