@@ -1,6 +1,15 @@
-# Render Blueprint — deploys the Go server from the Dockerfile.
-# PostgreSQL is hosted separately on Neon (free, persistent); paste its
-# connection string into DATABASE_URL when you apply this blueprint.
+# Render Blueprint — Go server (built from the Dockerfile) + a PostgreSQL database.
+# One account, nothing to paste: Render provisions the database and wires
+# DATABASE_URL into the service automatically.
+#
+# Note: Render's free PostgreSQL expires ~30 days after it is created. That covers
+# a demo/application window; for a permanent link, move the database to Neon
+# (free, persistent) and set DATABASE_URL to its connection string instead.
+databases:
+  - name: practicum-db
+    plan: free
+    region: singapore
+
 services:
   - type: web
     name: practicum-score-graphql
@@ -12,4 +21,6 @@ services:
     healthCheckPath: /healthz
     envVars:
       - key: DATABASE_URL
-        sync: false                # entered at apply time (the Neon connection string)
+        fromDatabase:
+          name: practicum-db
+          property: connectionString

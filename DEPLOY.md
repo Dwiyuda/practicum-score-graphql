@@ -1,33 +1,32 @@
-# Deploy (free, persistent)
+# Deploy a live demo
 
-The live demo runs on two free services: **Neon** for PostgreSQL (permanent free tier)
-and **Render** for the Go server (free web service, built from the `Dockerfile`).
+The `render.yaml` blueprint deploys the Go server (from the `Dockerfile`) **and** a
+PostgreSQL database on [Render](https://render.com), wiring them together for you.
 
-## 1. Database — Neon
+## Steps (all on render.com)
 
-1. Sign up at <https://neon.tech> (you can use GitHub).
-2. Create a project. Pick the **Singapore** region (closest to Indonesia).
-3. Copy the **connection string** it shows — it looks like
-   `postgresql://user:password@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`.
-   Keep it; you paste it into Render in the next step.
-
-## 2. Server — Render
-
-1. Sign up at <https://render.com> and connect your GitHub.
+1. Sign up at <https://render.com> — use **Continue with GitHub** so it can read your repos.
 2. **New → Blueprint**, pick the `practicum-score-graphql` repo. Render reads `render.yaml`.
-3. When it asks for `DATABASE_URL`, paste the Neon connection string from step 1.
-4. **Apply**. The first build takes a few minutes (it builds the Docker image).
-5. Open the service URL. You should see the **GraphQL playground**, already seeded with
+3. Click **Apply**. The first build takes a few minutes (it builds the Docker image and
+   creates the database).
+4. Open the service URL. You should see the **GraphQL playground**, already seeded with
    synthetic demo data. Try:
 
    ```graphql
    { classSummary(className: "A") { students average attendanceRate } }
    ```
 
+That's it — no connection string to copy, no database to configure by hand.
+
 ## Good to know
 
-- The free Render web service **sleeps after ~15 minutes of no traffic** and takes about a
-  minute to wake on the next request. Fine for a portfolio demo; the first hit after idle is slow.
-- The Neon free database is **permanent** (it does not expire), unlike Render's own free Postgres.
-- `-seed` is safe to run on every start: it only inserts data when the database has no students yet.
-- Once it is live, put the URL in this repo's **About → homepage** and in your portfolio.
+- The free web service **sleeps after ~15 minutes of no traffic** and takes about a minute
+  to wake on the next request. Fine for a portfolio demo; the first hit after idle is slow.
+- Render's **free PostgreSQL expires ~30 days** after creation. That covers a demo/application
+  window. For a link that lasts, move the database to **Neon** (free, persistent): create a
+  Neon project, then replace the `databases:` block and the `fromDatabase` wiring in
+  `render.yaml` with a plain `DATABASE_URL` set to the Neon connection string (`?sslmode=require`).
+- `-seed` is safe on every start: it only inserts data when the database has no students yet.
+- If **Apply** complains that `region: singapore` is not available for the free database,
+  change both `region:` lines in `render.yaml` to `oregon`.
+- If Render rejects `runtime: docker`, change it to `env: docker` (older accounts use that key).
