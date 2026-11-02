@@ -1,15 +1,13 @@
-package main
+package store
 
 import (
 	"context"
 	"fmt"
-
-	"github.com/Dwiyuda/practicum-score-graphql/internal/store"
 )
 
-// seedDemo inserts synthetic students, sessions, and scores. Names are fictional.
+// Seed inserts synthetic students, sessions, and scores. Names are fictional.
 // It is skipped when students already exist, so restarting with -seed is safe.
-func seedDemo(ctx context.Context, db *store.Postgres) error {
+func Seed(ctx context.Context, db Store) error {
 	existing, err := db.ListStudents(ctx, nil)
 	if err != nil || len(existing) > 0 {
 		return err

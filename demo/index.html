@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practicum Score API Demo</title>
+<meta name="description" content="Live demo of a GraphQL API in Go, compiled to WebAssembly. Synthetic data.">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fafaf8; --panel: #ffffff; --ink: #1c1c1a; --muted: #62625c;
+    --line: #dcdcd4; --accent: #00687a; --accent-ink: #ffffff; --code: #f3f3ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151514; --panel: #1e1e1c; --ink: #ecece6; --muted: #a3a39b;
+      --line: #383834; --accent: #5cc4d6; --accent-ink: #0c2429; --code: #171716;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  p { margin: 0 0 12px; }
+  .muted { color: var(--muted); }
+  a { color: var(--accent); }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 12px; }
+  button {
+    font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  }
+  button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.run { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button:disabled { opacity: .55; cursor: wait; }
+  .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .panes { grid-template-columns: 1fr; } }
+  label, .label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
+  textarea, pre {
+    width: 100%; height: 400px; margin: 0; padding: 12px; overflow: auto;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--code); color: var(--ink);
+    font: 14px/1.5 ui-monospace, Consolas, Menlo, monospace; resize: vertical;
+  }
+  .actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Practicum Score API</h1>
+  <p class="muted">A GraphQL API in Go for practicum scores and attendance.
+    <a href="https://github.com/Dwiyuda/practicum-score-graphql">Source on GitHub</a></p>
+  <p>The real schema and resolvers run in this page as WebAssembly. There is no server or PostgreSQL
+    behind this demo: data is synthetic, stays in your browser, and resets on refresh.</p>
+
+  <div class="presets" id="presets" aria-label="Example operations"></div>
+
+  <div class="panes">
+    <div>
+      <label for="query">Operation</label>
+      <textarea id="query" spellcheck="false"></textarea>
+    </div>
+    <div>
+      <span class="label" id="result-label">Response</span>
+      <pre id="result" tabindex="0" aria-labelledby="result-label" aria-live="polite"></pre>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="run" id="run" disabled>Run</button>
+    <span class="muted" id="status" role="status">Loading the API…</span>
+  </div>
+</main>
+
+<script src="wasm_exec.js"></script>
+<script>
+  const presets = {
+    "Class summary": `{
+  classSummary(className: "A") { students average attendanceRate }
+}`,
+    "Students in class B": `{
+  students(className: "B") { nim name average attendanceRate }
+}`,
+    "Sessions": `{
+  sessions { number topic heldOn }
+}`,
+    "Record a score": `mutation {
+  recordScore(input: { studentId: 1, sessionId: 2, value: 87.5, attended: true }) {
+    value
+    student { name average }
+  }
+}`,
+    "Rejected score": `mutation {
+  recordScore(input: { studentId: 1, sessionId: 2, value: 150, attended: true }) {
+    value
+  }
+}`
+  };
+
+  const query = document.getElementById("query");
+  const result = document.getElementById("result");
+  const run = document.getElementById("run");
+  const status = document.getElementById("status");
+
+  for (const [name, text] of Object.entries(presets)) {
+    const b = document.createElement("button");
+    b.textContent = name;
+    b.onclick = () => { query.value = text; execute(); };
+    document.getElementById("presets").append(b);
+  }
+  query.value = presets["Class summary"];
+
+  async function execute() {
+    if (!window.runGraphQL) return;
+    run.disabled = true;
+    const out = await window.runGraphQL(JSON.stringify({ query: query.value }));
+    result.textContent = JSON.stringify(JSON.parse(out), null, 2);
+    run.disabled = false;
+  }
+  run.onclick = execute;
+
+  window.onGraphQLReady = () => {
+    run.disabled = false;
+    status.textContent = "Ready.";
+    execute();
+  };
+
+  const go = new Go();
+  WebAssembly.instantiateStreaming(fetch("app.wasm"), go.importObject)
+    .then(r => go.run(r.instance))
+    .catch(e => { status.textContent = "Could not load the demo: " + e.message; });
+</script>
+</body>
+</html>

@@ -9,13 +9,14 @@ import (
 	"github.com/Dwiyuda/practicum-score-graphql/internal/domain"
 )
 
-// Memory is an in-process Store used by the resolver tests.
+// Memory is an in-process Store used by the resolver tests and the browser demo.
 type Memory struct {
-	mu       sync.Mutex
-	next     int64
-	students map[int64]domain.Student
-	sessions map[int64]domain.Session
-	scores   map[[2]int64]domain.Score
+	mu sync.Mutex
+	// One sequence per table, like the SERIAL columns in Postgres.
+	nextStudent, nextSession, nextScore int64
+	students                            map[int64]domain.Student
+	sessions                            map[int64]domain.Session
+	scores                              map[[2]int64]domain.Score
 }
 
 func NewMemory() *Memory {
@@ -26,8 +27,6 @@ func NewMemory() *Memory {
 	}
 }
 
-func (m *Memory) id() int64 { m.next++; return m.next }
-
 func (m *Memory) CreateStudent(_ context.Context, nim, name, className string) (domain.Student, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -36,7 +35,8 @@ func (m *Memory) CreateStudent(_ context.Context, nim, name, className string) (
 			return domain.Student{}, fmt.Errorf("nim %s already exists", nim)
 		}
 	}
-	s := domain.Student{ID: m.id(), Nim: nim, Name: name, ClassName: className}
+	m.nextStudent++
+	s := domain.Student{ID: m.nextStudent, Nim: nim, Name: name, ClassName: className}
 	m.students[s.ID] = s
 	return s, nil
 }
@@ -67,7 +67,8 @@ func (m *Memory) GetStudent(_ context.Context, id int64) (domain.Student, error)
 func (m *Memory) CreateSession(_ context.Context, number int, topic, heldOn string) (domain.Session, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	s := domain.Session{ID: m.id(), Number: number, Topic: topic, HeldOn: heldOn}
+	m.nextSession++
+	s := domain.Session{ID: m.nextSession, Number: number, Topic: topic, HeldOn: heldOn}
 	m.sessions[s.ID] = s
 	return s, nil
 }
@@ -105,7 +106,8 @@ func (m *Memory) RecordScore(_ context.Context, studentID, sessionID int64, valu
 	key := [2]int64{studentID, sessionID}
 	s, ok := m.scores[key]
 	if !ok {
-		s = domain.Score{ID: m.id(), StudentID: studentID, SessionID: sessionID}
+		m.nextScore++
+		s = domain.Score{ID: m.nextScore, StudentID: studentID, SessionID: sessionID}
 	}
 	s.Value, s.Attended = value, attended
 	m.scores[key] = s

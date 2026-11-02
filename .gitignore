@@ -1,3 +1,5 @@
 /server
 *.exe
 .env
+/demo/app.wasm
+/demo/wasm_exec.js

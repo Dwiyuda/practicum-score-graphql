@@ -55,10 +55,10 @@ func TestScoreFlow(t *testing.T) {
 	mustOK(do(t, srv, `mutation { createStudent(input: {nim: "2", name: "Siti", className: "A"}) { id } }`))
 	mustOK(do(t, srv, `mutation { createSession(input: {number: 1, topic: "SELECT", heldOn: "2026-09-01"}) { id } }`))
 	mustOK(do(t, srv, `mutation { createSession(input: {number: 2, topic: "JOIN", heldOn: "2026-09-08"}) { id } }`))
-	// memory store ids: students 1, 2; sessions 3, 4
-	mustOK(do(t, srv, `mutation { recordScore(input: {studentId: 1, sessionId: 3, value: 80, attended: true}) { id } }`))
-	mustOK(do(t, srv, `mutation { recordScore(input: {studentId: 1, sessionId: 4, value: 60, attended: false}) { id } }`))
-	mustOK(do(t, srv, `mutation { recordScore(input: {studentId: 2, sessionId: 3, value: 100, attended: true}) { id } }`))
+	// memory store ids: students 1, 2; sessions 1, 2
+	mustOK(do(t, srv, `mutation { recordScore(input: {studentId: 1, sessionId: 1, value: 80, attended: true}) { id } }`))
+	mustOK(do(t, srv, `mutation { recordScore(input: {studentId: 1, sessionId: 2, value: 60, attended: false}) { id } }`))
+	mustOK(do(t, srv, `mutation { recordScore(input: {studentId: 2, sessionId: 1, value: 100, attended: true}) { id } }`))
 
 	r := mustOK(do(t, srv, `{ student(id: 1) { name average attendanceRate scores { value session { number } } } }`))
 	st := r.Data["student"].(map[string]any)

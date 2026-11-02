@@ -1,4 +1,8 @@
-# Deploy a live demo
+# Deploy the server with PostgreSQL
+
+The public demo linked in the README runs in the browser and needs no hosting. This guide is for running
+the real server and database. Render may ask for a payment card before it creates a Blueprint with a
+database, even on the free plan.
 
 The `render.yaml` blueprint deploys the Go server (from the `Dockerfile`) **and** a
 PostgreSQL database on [Render](https://render.com), wiring them together for you.

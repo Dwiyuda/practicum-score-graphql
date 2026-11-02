@@ -10,7 +10,7 @@ import (
 
 var ErrNotFound = errors.New("not found")
 
-// Store is implemented by Postgres (production) and Memory (tests).
+// Store is implemented by Postgres (production) and Memory (tests and the browser demo).
 type Store interface {
 	CreateStudent(ctx context.Context, nim, name, className string) (domain.Student, error)
 	ListStudents(ctx context.Context, className *string) ([]domain.Student, error)

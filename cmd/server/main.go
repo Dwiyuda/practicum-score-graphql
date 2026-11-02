@@ -42,7 +42,7 @@ func main() {
 		log.Fatal("migrate: ", err)
 	}
 	if *seed {
-		if err := seedDemo(context.Background(), db); err != nil {
+		if err := store.Seed(context.Background(), db); err != nil {
 			log.Fatal("seed: ", err)
 		}
 	}
